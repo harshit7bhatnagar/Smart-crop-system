@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Crop Advisory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body class="bg-gray-50 text-gray-800 transition-all">
+
+  <!-- Navbar -->
+  <header class="sticky top-0 bg-white shadow-md p-4 flex justify-between items-center z-40">
+    <h1 class="font-bold text-lg flex items-center gap-2">🌱 Smart Crop Advisory</h1>
+    <button id="menuBtn" class="md:hidden text-2xl">☰</button>
+    <nav id="navLinks" class="hidden md:flex gap-6 text-sm">
+      <a href="#problem" class="hover:underline">Problem</a>
+      <a href="#impact" class="hover:underline">Impact</a>
+      <a href="#features" class="hover:underline">Features</a>
+      <a href="#architecture" class="hover:underline">Architecture</a>
+      <a href="#contact" class="hover:underline">Contact</a>
+      <button id="loginNavBtn" onclick="openModal('loginModal')" class="bg-green-600 text-white px-3 py-1 rounded shadow hover:bg-green-700">Login</button>
+      <button id="logoutNavBtn" onclick="logout()" class="bg-red-600 text-white px-3 py-1 rounded shadow hover:bg-red-700 hidden">Logout</button>
+      <button id="dashboardNavBtn" onclick="showDashboard()" class="bg-blue-600 text-white px-3 py-1 rounded shadow hover:bg-blue-700 hidden">Dashboard</button>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section id="heroSection" class="p-10 grid lg:grid-cols-2 gap-8 items-center">
+    <div>
+      <h2 class="text-3xl font-bold">Smart, Localized Advisory for <span class="text-green-600">Small & Marginal Farmers</span></h2>
+      <p class="mt-4 text-gray-600">Data-driven crop, pest, irrigation, and fertilizer guidance—delivered via App, SMS, and IVR in native languages.</p>
+    </div>
+    <div>
+      <canvas id="yieldChart"></canvas>
+    </div>
+  </section>
+
+  <!-- Tabs -->
+  <section id="tabsSection" class="p-10">
+    <h2 class="text-2xl font-semibold mb-4">See How It Works</h2>
+    <div class="flex gap-4 mb-4 flex-wrap">
+      <button onclick="showTab('advisory', this)" class="tab-btn px-4 py-2 bg-green-100 rounded" data-login-required="true">Advisory</button>
+      <button onclick="showTab('alerts', this)" class="tab-btn px-4 py-2 bg-green-100 rounded">Alerts</button>
+      <button onclick="showTab('market', this)" class="tab-btn px-4 py-2 bg-green-100 rounded">Market</button>
+      <button onclick="showTab('chatbot', this)" class="tab-btn px-4 py-2 bg-green-100 rounded">Chat Bot</button>
+    </div>
+    <div id="advisory" class="tab-content p-4 border rounded bg-white">
+      <div id="advisoryLoginMsg" class="text-red-600 font-semibold">🔒 Please login to access Advisory features.</div>
+      <form id="advisoryForm" class="space-y-4 hidden">
+        <div>
+          <label class="block mb-1 font-medium">Temperature (°C)</label>
+          <input type="number" name="temperature" class="w-full border p-2 rounded" step="0.1" required />
+        </div>
+        <div>
+          <label class="block mb-1 font-medium">Moisture (%)</label>
+          <input type="number" name="moisture" class="w-full border p-2 rounded" step="0.1" required />
+        </div>
+        <div>
+          <label class="block mb-1 font-medium">Rainfall (mm)</label>
+          <input type="number" name="rainfall" class="w-full border p-2 rounded" step="0.1" required />
+        </div>
+        <div>
+          <label class="block mb-1 font-medium">pH</label>
+          <input type="number" name="ph" class="w-full border p-2 rounded" step="0.01" min="0" max="14" required />
+        </div>
+        <div>
+          <label class="block mb-1 font-medium">Nitrogen (mg/kg)</label>
+          <input type="number" name="nitrogen" class="w-full border p-2 rounded" step="0.1" required />
+        </div>
+        <div>
+          <label class="block mb-1 font-medium">Phosphorous (mg/kg)</label>
+          <input type="number" name="phosphorous" class="w-full border p-2 rounded" step="0.1" required />
+        </div>
+        <div>
+          <label class="block mb-1 font-medium">Potassium (mg/kg)</label>
+          <input type="number" name="potassium" class="w-full border p-2 rounded" step="0.1" required />
+        </div>
+        <div>
+          <label class="block mb-1 font-medium">Carbon (%)</label>
+          <input type="number" name="carbon" class="w-full border p-2 rounded" step="0.01" required />
+        </div>
+        <div>
+          <label class="block mb-1 font-medium">Soil Type</label>
+          <select name="soil" class="w-full border p-2 rounded" required>
+            <option value="">Select</option>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+          </select>
+        </div>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Get Advisory</button>
+      </form>
+      <div id="advisoryResult" class="mt-4 text-green-700 font-medium hidden"></div>
+    </div>
+    <div id="alerts" class="tab-content p-4 border rounded bg-white hidden">Hyperlocal weather + pest risk triggers SMS/IVR alerts in the farmer’s language.</div>
+    <div id="market" class="tab-content p-4 border rounded bg-white hidden">Track mandi prices and get best-time-to-sell notifications.</div>
+    <div id="chatbot" class="tab-content p-4 border rounded bg-white hidden">Chat with our AI Bot for instant farm guidance in your local language.</div>
+  </section>
+
+  <!-- Contact Form -->
+  <section id="contact" class="p-10 bg-gray-100">
+    <h2 class="text-2xl font-semibold">Get in Touch</h2>
+    <form onsubmit="submitForm(event)" class="mt-4 space-y-4">
+      <input type="text" placeholder="Name" class="w-full border p-2 rounded" required />
+      <input type="email" placeholder="Email" class="w-full border p-2 rounded" required />
+      <textarea placeholder="How can we help?" rows="4" class="w-full border p-2 rounded"></textarea>
+      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Submit</button>
+    </form>
+    <p id="formMessage" class="mt-2 text-green-700 hidden">✅ Thank you! We'll contact you soon.</p>
+  </section>
+
+  <!-- Footer -->
+  <footer id="footerSection" class="p-6 text-center text-sm bg-white border-t">
+    © 2025 Smart Crop Advisory
+  </footer>
+
+  <!-- Farmer Dashboard (Hidden until requested) -->
+  <div id="dashboard" class="hidden p-10">
+    <button onclick="showHome()" class="mb-6 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">← Back to Home</button>
+    <h2 class="text-3xl font-bold mb-6">👨‍🌾 Farmer Dashboard</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- Weather Card -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-lg font-semibold mb-2">🌦 Weather Update</h3>
+        <p class="text-gray-600">Today: <span class="font-bold">28°C, Sunny</span></p>
+        <p class="text-gray-600">Rainfall chance: <span class="font-bold">10%</span></p>
+      </div>
+      <!-- Crop Suggestion -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-lg font-semibold mb-2">🌱 Suggested Crop</h3>
+        <p class="text-gray-600">Based on soil data: <span class="font-bold">Wheat</span></p>
+        <p class="text-gray-600">Recommended sowing date: <span class="font-bold">Oct 15</span></p>
+      </div>
+      <!-- Market Prices -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-lg font-semibold mb-2">📈 Market Prices</h3>
+        <ul class="text-gray-600 space-y-1">
+          <li>Wheat: ₹2200 / quintal</li>
+          <li>Rice: ₹1800 / quintal</li>
+          <li>Cotton: ₹6000 / quintal</li>
+        </ul>
+      </div>
+    </div>
+    <!-- Chatbot Widget -->
+    <div class="fixed bottom-6 right-6">
+      <button onclick="toggleChatbot()" class="bg-green-600 text-white px-4 py-3 rounded-full shadow-lg">🤖</button>
+    </div>
+    <div id="chatbotBox" class="hidden fixed bottom-20 right-6 w-80 bg-white rounded-xl shadow-lg border p-4">
+      <h3 class="font-semibold">AI Chatbot</h3>
+      <div class="h-40 overflow-y-auto border p-2 my-2 text-sm text-gray-600">Hello Farmer! 👋 How can I help?</div>
+      <input type="text" placeholder="Ask here..." class="w-full border p-2 rounded" />
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-lg p-8 w-96 relative">
+      <button onclick="closeModal('loginModal')" class="absolute top-2 right-2 text-gray-500 hover:text-black">✖</button>
+      <h2 class="text-xl font-semibold text-center mb-4">Login</h2>
+      <form onsubmit="login(event)" class="space-y-4">
+        <input type="email" placeholder="Email" class="w-full border p-2 rounded" required />
+        <input type="password" placeholder="Password" class="w-full border p-2 rounded" required />
+        <button type="submit" class="bg-green-600 text-white w-full py-2 rounded hover:bg-green-700">Login</button>
+      </form>
+      <p class="text-sm text-center mt-4">Don’t have an account? 
+        <a href="#" onclick="switchToRegister()" class="text-green-600 hover:underline">Register</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Registration Modal -->
+  <div id="registerModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-lg p-8 w-96 relative">
+      <button onclick="closeModal('registerModal')" class="absolute top-2 right-2 text-gray-500 hover:text-black">✖</button>
+      <h2 class="text-xl font-semibold text-center mb-4">Register</h2>
+      <form onsubmit="register(event)" class="space-y-4">
+        <input type="text" placeholder="Full Name" class="w-full border p-2 rounded" required />
+        <input type="email" placeholder="Email" class="w-full border p-2 rounded" required />
+        <input type="password" placeholder="Password" class="w-full border p-2 rounded" required />
+        <input type="password" placeholder="Confirm Password" class="w-full border p-2 rounded" required />
+        <button type="submit" class="bg-green-600 text-white w-full py-2 rounded hover:bg-green-700">Register</button>
+      </form>
+      <p class="text-sm text-center mt-4">Already have an account? 
+        <a href="#" onclick="switchToLogin()" class="text-green-600 hover:underline">Login</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ======= MARKET MODAL INSERTED (no other changes in your file) ======= -->
+  <!-- Modal opens when user clicks the Market tab (wired in script below) -->
+  <div id="marketModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60">
+    <div style="background:white;border-radius:12px;padding:18px;width:100%;max-width:1000px;max-height:90vh;overflow:auto;position:relative">
+      <button onclick="closeMarketModal()" style="position:absolute;right:12px;top:12px;border:none;background:transparent;font-size:18px;cursor:pointer">✖</button>
+      <h3 id="modalTitle" style="font-size:18px;font-weight:600;margin-bottom:8px">📊 Market — Realtime Mandi Prices</h3>
+
+      <form id="marketForm" style="position:relative;margin-bottom:8px">
+        <div style="position:relative;">
+          <input id="marketPrompt" autocomplete="off" type="text" placeholder="Enter commodity + place (eg: wheat uttarakhand)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;font-size:14px" />
+          <div id="suggestions" class="suggestions hidden" style="top:42px;left:2px"></div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button type="submit" id="getPriceBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Get Price</button>
+          <button type="button" onclick="closeMarketModal()" class="bg-gray-200 px-4 py-2 rounded">Cancel</button>
+        </div>
+      </form>
+
+      <div id="marketResult" style="margin-top:12px;font-size:13px"></div>
+
+      <!-- realtime controls -->
+      <div id="realtimeControls" class="hidden" style="margin-top:14px">
+        <div style="display:flex;gap:10px;align-items:center;">
+          <label style="font-size:13px">Polling interval (sec):</label>
+          <input id="pollInterval" type="number" min="5" value="30" style="width:80px;padding:6px;border-radius:6px;border:1px solid #e6e9ef" />
+          <button id="startTrackBtn" class="bg-blue-600 text-white px-3 py-1 rounded">Start Tracking</button>
+          <button id="stopTrackBtn" class="bg-red-600 text-white px-3 py-1 rounded hidden">Stop</button>
+          <label style="margin-left:auto;font-size:13px">Status: <span id="trackStatus" class="realtime-badge">stopped</span></label>
+        </div>
+        <div id="currentPriceBox" class="mt-3" style="font-size:14px;margin-top:8px"></div>
+      </div>
+
+      <div id="visuals" style="margin-top:12px;display:grid;grid-template-columns:1fr;gap:12px" class="hidden">
+        <div id="chartWrap" style="border:1px solid #eef2f7;padding:10px;border-radius:8px">
+          <canvas id="priceChart" height="220"></canvas>
+        </div>
+        <div id="mapWrap" style="border:1px solid #eef2f7;padding:10px;border-radius:8px">
+          <div id="marketMap" style="width:100%;height:300px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ======= END MARKET MODAL ======= -->
+
+  <script>
+  // Chart.js Example
+    // Fetch data from local server and display in hero section
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch('http://127.0.0.1:5000')
+        .then(response => response.text())
+        .then(data => {
+          const heroSection = document.getElementById('heroSection');
+          if (heroSection) {
+            const serverDiv = document.createElement('div');
+            serverDiv.className = 'mt-4 p-4 bg-green-100 rounded';
+            serverDiv.innerHTML = "<strong>Server Response:</strong><br><pre>" + data + "</pre>";
+            heroSection.appendChild(serverDiv);
+          }
+        })
+        .catch(error => {
+          console.error('Error connecting to server:', error);
+        });
+    });
+    const ctx = document.getElementById('yieldChart');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Baseline', 'ICT Advisory', 'Smart Advisory'],
+        datasets: [{
+          label: 'Yield',
+          data: [100, 120, 130],
+          borderColor: 'green',
+          borderWidth: 3,
+          fill: false,
+          tension: 0.3
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    // Track login state
+    let isLoggedIn = false;
+
+    // Tabs
+    function showTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('bg-green-600','text-white'));
+      btn.classList.add('bg-green-600','text-white');
+
+      // If Advisory tab: require login
+      if(tabId === 'advisory') {
+        const advisoryForm = document.getElementById('advisoryForm');
+        const advisoryResult = document.getElementById('advisoryResult');
+        const advisoryLoginMsg = document.getElementById('advisoryLoginMsg');
+        if (!isLoggedIn) {
+          advisoryForm.classList.add('hidden');
+          advisoryResult.classList.add('hidden');
+          advisoryLoginMsg.classList.remove('hidden');
+        } else {
+          advisoryForm.classList.remove('hidden');
+          advisoryResult.classList.add('hidden');
+          advisoryLoginMsg.classList.add('hidden');
+          advisoryForm.reset();
+        }
+      }
+    }
+
+    // Advisory Form Logic
+    document.addEventListener('DOMContentLoaded', function() {
+      const advisoryForm = document.getElementById('advisoryForm');
+      if (advisoryForm) {
+        advisoryForm.onsubmit = function(e) {
+          e.preventDefault();
+          // Gather form data
+          const formData = {
+            temperature: advisoryForm.temperature.value,
+            moisture: advisoryForm.moisture.value,
+            rainfall: advisoryForm.rainfall.value,
+            ph: advisoryForm.ph.value,
+            nitrogen: advisoryForm.nitrogen.value,
+            phosphorous: advisoryForm.phosphorous.value,
+            potassium: advisoryForm.potassium.value,
+            carbon: advisoryForm.carbon.value,
+            soil: advisoryForm.soil.value
+          };
+          // Send to backend server
+          fetch('http://127.0.0.1:5000/predict', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+          })
+          .then(response => response.json())
+          .then(data => {
+            // Expecting server to return { crop: '...', sowing_date: '...', plan: '...' }
+            const result = `Recommended crop: <b>${data.crop}</b>.<br>
+              Suggested sowing date: <b>${data.sowing_date}</b>.<br>
+              ${data.plan ? data.plan : ''}<br>
+              <hr>
+              <b>Your Data:</b><br>
+              Temperature: ${formData.temperature} °C<br>
+              Moisture: ${formData.moisture} %<br>
+              Rainfall: ${formData.rainfall} mm<br>
+              pH: ${formData.ph}<br>
+              Nitrogen: ${formData.nitrogen} mg/kg<br>
+              Phosphorous: ${formData.phosphorous} mg/kg<br>
+              Potassium: ${formData.potassium} mg/kg<br>
+              Carbon: ${formData.carbon} %<br>
+              Soil Type: ${formData.soil}`;
+            advisoryForm.classList.add('hidden');
+            const advisoryResult = document.getElementById('advisoryResult');
+            advisoryResult.innerHTML = result;
+            advisoryResult.classList.remove('hidden');
+          })
+          .catch(error => {
+            const advisoryResult = document.getElementById('advisoryResult');
+            advisoryResult.innerHTML = "<span class='text-red-600'>Error connecting to server: " + String(error) + "</span>";
+            advisoryResult.classList.remove('hidden');
+          });
+        };
+      }
+    });
+
+    // Contact Form
+    function submitForm(e) {
+      e.preventDefault();
+      document.getElementById('formMessage').classList.remove('hidden');
+    }
+
+    // Modal Functions
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function switchToRegister() { closeModal('loginModal'); openModal('registerModal'); }
+    function switchToLogin() { closeModal('registerModal'); openModal('loginModal'); }
+
+    // ----------------- Auth: real handlers calling your Flask backend -----------------
+    // keep global isLoggedIn variable above; we persist a minimal session in localStorage key 'sc_session'
+
+    // restore session on load
+    function initAuthFromStorage() {
+      try {
+        const s = localStorage.getItem('sc_session');
+        if (s) {
+          const obj = JSON.parse(s);
+          if (obj && obj.email) {
+            isLoggedIn = true;
+            document.getElementById('loginNavBtn')?.classList.add('hidden');
+            document.getElementById('logoutNavBtn')?.classList.remove('hidden');
+            document.getElementById('dashboardNavBtn')?.classList.remove('hidden');
+            return;
+          }
+        }
+      } catch (e) { console.error('session restore error', e); }
+      // default when no session
+      isLoggedIn = false;
+      document.getElementById('loginNavBtn')?.classList.remove('hidden');
+      document.getElementById('logoutNavBtn')?.classList.add('hidden');
+      document.getElementById('dashboardNavBtn')?.classList.add('hidden');
+    }
+
+    // login form handler (drop-in to replace previous body)
+    async function login(e) {
+      e.preventDefault();
+      try {
+        const email = e.target.querySelector('input[type="email"]').value.trim().toLowerCase();
+        const password = e.target.querySelector('input[type="password"]').value;
+        if (!email || !password) { alert('Enter email & password'); return; }
+
+        const resp = await fetch('http://localhost:5000/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await resp.json();
+        if (data && data.success) {
+          isLoggedIn = true;
+          localStorage.setItem('sc_session', JSON.stringify(data.user));
+          closeModal('loginModal');
+          document.getElementById('loginNavBtn')?.classList.add('hidden');
+          document.getElementById('logoutNavBtn')?.classList.remove('hidden');
+          document.getElementById('dashboardNavBtn')?.classList.remove('hidden');
+          try { showTab('advisory', document.querySelector("[onclick*=\"showTab('advisory'\"]")); } catch(e){}
+        } else {
+          alert(data.message || 'Login failed');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Network error during login');
+      }
+    }
+
+    // register form handler (drop-in to replace previous body)
+    async function register(e) {
+      e.preventDefault();
+      try {
+        const name = e.target.querySelector('input[placeholder="Full Name"]').value.trim();
+        const email = e.target.querySelector('input[type="email"]').value.trim().toLowerCase();
+        const pwInputs = e.target.querySelectorAll('input[type="password"]');
+        const password = pwInputs[0].value;
+        const confirm = pwInputs[1].value;
+        if (!name || !email || !password) { alert('Please fill required fields'); return; }
+        if (password !== confirm) { alert('Passwords do not match'); return; }
+
+        const resp = await fetch('http://localhost:5000/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+        const data = await resp.json();
+        if (data && data.success) {
+          isLoggedIn = true;
+          localStorage.setItem('sc_session', JSON.stringify(data.user));
+          alert('Registered successfully!');
+          closeModal('registerModal');
+          document.getElementById('loginNavBtn')?.classList.add('hidden');
+          document.getElementById('logoutNavBtn')?.classList.remove('hidden');
+          document.getElementById('dashboardNavBtn')?.classList.remove('hidden');
+          try { showTab('advisory', document.querySelector("[onclick*=\"showTab('advisory'\"]")); } catch(e){}
+        } else {
+          alert(data.message || 'Register failed');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Network error during registration');
+      }
+    }
+
+    // logout — clear local session and update UI
+    function logout() {
+      localStorage.removeItem('sc_session');
+      isLoggedIn = false;
+      document.getElementById("loginNavBtn").classList.remove("hidden");
+      document.getElementById("logoutNavBtn").classList.add("hidden");
+      document.getElementById("dashboardNavBtn").classList.add("hidden");
+      showTab('advisory', document.querySelector("[onclick*=\"showTab('advisory'\"]"));
+    }
+
+    // initialize auth status when DOM is ready
+    document.addEventListener('DOMContentLoaded', initAuthFromStorage);
+
+    function showDashboard() {
+      document.querySelector("header").classList.add("hidden");
+      document.getElementById("heroSection").classList.add("hidden");
+      document.getElementById("tabsSection").classList.add("hidden");
+      document.getElementById("contact").classList.add("hidden");
+      document.getElementById("footerSection").classList.add("hidden");
+      document.getElementById("dashboard").classList.remove("hidden");
+    }
+    function showHome() {
+      document.querySelector("header").classList.remove("hidden");
+      document.getElementById("heroSection").classList.remove("hidden");
+      document.getElementById("tabsSection").classList.remove("hidden");
+      document.getElementById("contact").classList.remove("hidden");
+      document.getElementById("footerSection").classList.remove("hidden");
+      document.getElementById("dashboard").classList.add("hidden");
+    }
+
+    // Mobile Menu
+    document.getElementById("menuBtn").onclick = () => {
+      document.getElementById("navLinks").classList.toggle("hidden");
+    };
+
+    // Chatbot
+    function toggleChatbot() {
+      document.getElementById("chatbotBox").classList.toggle("hidden");
+    }
+
+    /* ================== MARKET JS: parsing, suggestions, API call, chart, map, realtime tracking ================== */
+    // API config (use your key/resource)
+    const MARKET_API_KEY = "579b464db66ec23bdd000001869b542ec14348ce4c9f5e3b17bb466f";
+    const MARKET_RESOURCE_ID = "9ef84268-d588-465a-a308-a864a43d0070";
+    const MARKET_API_BASE = "https://api.data.gov.in/resource";
+
+    // Synonyms & states
+    const COMMODITY_SYNONYMS = {
+      "wheat":["wheat","gehun","गेहूँ"],"rice":["rice","chawal","चावल"],"maize":["maize","makka","मक्का"],
+      "onion":["onion","pyaz","प्याज"],"potato":["potato","aloo","आलू"],"tomato":["tomato","tamatar","टमाटर"],
+      "lentil":["lentil","masoor","मसूर"],"moong":["moong","green gram","मूंग"],
+      "urad":["urad","black gram","उड़द"],"rajma":["rajma","kidney bean","राजमा"],
+      "soyabean":["soyabean","soy","सोयाबीन"],"groundnut":["groundnut","peanut","मूंगफली"],
+      "mustard seed":["mustard seed","sarson","सरसों"],"mustard oil":["mustard oil","sarson ka tel","सरसों तेल"],
+      "puffed rice":["muri","murhi","मुरी"],"turmeric":["turmeric","haldi","हल्दी"],"chilli":["chilli","mirchi","मिर्च"],
+      "coriander":["coriander","dhania","धनिया"],"cumin":["cumin","jeera","जीरा"]
+    };
+    const STATES = ["uttarakhand","uttar pradesh","haryana","delhi","punjab","bihar","karnataka","maharashtra","tamil nadu","kerala","west bengal","odisha","rajasthan","gujarat","assam","jharkhand","chhattisgarh","telangana","andhra pradesh","madhya pradesh","himachal pradesh","jammu and kashmir"];
+
+    const SYNONYMS_TO_CANON = {};
+    Object.keys(COMMODITY_SYNONYMS).forEach(c=>COMMODITY_SYNONYMS[c].forEach(a=>SYNONYMS_TO_CANON[a.toLowerCase()]=c));
+    const SUGGESTIONS = Array.from(new Set(Object.keys(SYNONYMS_TO_CANON).concat(Object.keys(COMMODITY_SYNONYMS)))).sort();
+
+    // Levenshtein + similarity
+    function levenshtein(a,b){a=a||"";b=b||"";const m=a.length,n=b.length;if(m===0)return n;if(n===0)return m;const dp=Array(m+1).fill().map(()=>Array(n+1).fill(0));for(let i=0;i<=m;i++)dp[i][0]=i;for(let j=0;j<=n;j++)dp[0][j]=j;for(let i=1;i<=m;i++){for(let j=1;j<=n;j++){const cost=a[i-1]===b[j-1]?0:1;dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+cost)}}return dp[m][n]}
+    function similarity(a,b){a=(a||"").toLowerCase();b=(b||"").toLowerCase();if(!a&&!b)return 1;const dist=levenshtein(a,b);return 1-(dist/Math.max(a.length,b.length))}
+
+    function findBestCommodity(token){
+      token=(token||"").toLowerCase().trim();
+      if(!token) return null;
+      if(SYNONYMS_TO_CANON[token]) return SYNONYMS_TO_CANON[token];
+      let best={score:0,cand:token};
+      SUGGESTIONS.forEach(alias=>{
+        const s = similarity(token, alias);
+        if (s>best.score) best={score:s,cand: SYNONYMS_TO_CANON[alias] || alias};
+      });
+      return best.score >= 0.45 ? best.cand : token;
+    }
+
+    function parseMarketPrompt(prompt){
+      const p = (prompt||"").trim().toLowerCase();
+      if(!p) return {commodity:"", state:null, market:""};
+      if (p.includes(" in ")) {
+        const parts = p.split(/\s+in\s+/);
+        return { commodity: findBestCommodity(parts[0].replace(/\b(price|rate|rates|bhav)\b/g,"").trim()), state: STATES.find(s=>parts[1].includes(s)) || null, market: parts[1].trim() };
+      }
+      if (p.includes(",")) {
+        const parts = p.split(",").map(x=>x.trim()).filter(Boolean);
+        return { commodity: findBestCommodity(parts[0].replace(/\b(price|rate|rates|bhav)\b/g,"").trim()), state: STATES.find(s=>parts.slice(1).join(" ").includes(s)) || null, market: parts.slice(1).join(" ") };
+      }
+      const words = p.split(/\s+/).filter(Boolean);
+      if (words.length === 1) return { commodity: findBestCommodity(words[0]), state: null, market: "" };
+      for (let k=3;k>=1;k--){
+        if (words.length >= k+1){
+          const candidate = words.slice(-k).join(" ");
+          for (const s of STATES) if (similarity(candidate, s) > 0.75) return { commodity: findBestCommodity(words.slice(0, words.length - k).join(" ")), state: s, market: candidate };
+        }
+      }
+      return { commodity: findBestCommodity(words[0]), state: null, market: words.slice(1).join(" ") };
+    }
+
+    function buildMarketApiUrl({commodity,state,market}) {
+      const p = new URLSearchParams({ "api-key": MARKET_API_KEY, format: "json", limit: "200" });
+      if (commodity) p.set("filters[commodity]", commodity);
+      if (state) p.set("filters[state]", state);
+      if (market && !state) p.set("filters[market]", market);
+      return `${MARKET_API_BASE}/${MARKET_RESOURCE_ID}?${p.toString()}`;
+    }
+
+    // Wire Market tab to open modal
+    document.querySelectorAll('.tab-btn').forEach(btn=>{
+      if ((btn.innerText || "").trim().toLowerCase() === 'market') {
+        btn.addEventListener('click', (ev) => {
+          try { showTab('market', btn); } catch(e){}
+          const modal = document.getElementById('marketModal');
+          if (modal) {
+            modal.classList.remove('hidden');
+            const input = document.getElementById('marketPrompt');
+            if (input) input.focus();
+            const current = (input.value || "").trim();
+            if (current.length > 0) {
+              document.getElementById('marketForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable:true }));
+            }
+          }
+        });
+      }
+    });
+
+    function closeMarketModal() {
+      document.getElementById('marketModal').classList.add('hidden');
+      if (typeof stopTracking === 'function') stopTracking();
+    }
+
+    // Typeahead
+    const promptInput = document.getElementById('marketPrompt');
+    const suggBox = document.getElementById('suggestions');
+
+    function showSuggestions(q) {
+      q = (q || "").trim().toLowerCase();
+      if (!q) { suggBox.classList.add('hidden'); return; }
+      const results = SUGGESTIONS
+        .map(s => ({ s, score: similarity(q, s) }))
+        .sort((a,b) => b.score - a.score)
+        .slice(0,8)
+        .filter(r => r.score > 0.25);
+      if (!results.length) { suggBox.classList.add('hidden'); return; }
+      suggBox.innerHTML = results.map(r => `<div class="suggestion-item" data-val="${r.s}">${r.s}</div>`).join('');
+      suggBox.classList.remove('hidden');
+    }
+    suggBox.addEventListener('click', (ev) => {
+      const it = ev.target.closest('.suggestion-item');
+      if (!it) return;
+      promptInput.value = it.getAttribute('data-val');
+      suggBox.classList.add('hidden');
+      promptInput.focus();
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#marketPrompt') && !e.target.closest('#suggestions')) suggBox.classList.add('hidden');
+    });
+    promptInput.addEventListener('input', (e) => { showSuggestions(e.target.value); });
+
+    // Render results table
+    function renderMarketResults(records) {
+      if (!records || records.length === 0) return "<div style='color:#dc2626'>No data found</div>";
+      let html = "<table><thead><tr><th>Commodity</th><th>Market</th><th>State</th><th>Min</th><th>Max</th><th>Unit</th><th>Date</th></tr></thead><tbody>";
+      records.forEach((r, i) => {
+        html += `<tr class="${i%2 ? 'even-row' : 'odd-row'}"><td>${r.commodity || '-'}</td><td>${r.market || '-'}</td><td>${r.state || '-'}</td><td>${r.min_price || r.min || '-'}</td><td>${r.max_price || r.max || '-'}</td><td>${r.unit || '-'}</td><td>${r.date || r.record_date || '-'}</td></tr>`;
+      });
+      html += "</tbody></table>";
+      return html;
+    }
+
+    // Chart & Map
+    let priceChart = null;
+    function buildPriceTrendChart(records) {
+      const dateMap = {};
+      for (const r of records) {
+        const dateStr = r.date || r.record_date || r.Date || "";
+        const val = Number(r.min_price || r.min || r.price || r.mandibasic_min_price || NaN);
+        if (!dateStr || Number.isNaN(val)) continue;
+        const d = dateStr.split("T")[0];
+        if (!dateMap[d]) dateMap[d] = { sum:0, count:0 };
+        dateMap[d].sum += val; dateMap[d].count += 1;
+      }
+      const dates = Object.keys(dateMap).sort();
+      if (!dates.length) return false;
+      const labels = dates;
+      const data = dates.map(d => Math.round((dateMap[d].sum / dateMap[d].count) * 100) / 100);
+      const ctx = document.getElementById('priceChart').getContext('2d');
+      if (priceChart) { priceChart.destroy(); priceChart = null; }
+      priceChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets: [{ label: "Price trend", data, fill:false, tension:0.2, pointRadius:3 }] },
+        options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{display:true}, y:{display:true} } }
+      });
+      return true;
+    }
+
+    let marketMap = null;
+    let marketMapMarkers = [];
+    function showMarketMap(records) {
+      const coords = [];
+      for (const r of records) {
+        const lat = parseFloat(r.latitude || r.lat || r.latitude_deg || NaN);
+        const lon = parseFloat(r.longitude || r.lon || r.longitude_deg || NaN);
+        if (!Number.isNaN(lat) && !Number.isNaN(lon)) coords.push({lat, lon, label: r.market || r.market_name || r.commodity || ""});
+      }
+      if (!coords.length) return false;
+      document.getElementById('visuals').classList.remove('hidden');
+      if (!marketMap) {
+        marketMap = L.map('marketMap').setView([coords[0].lat, coords[0].lon], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(marketMap);
+      }
+      marketMapMarkers.forEach(m=>marketMap.removeLayer(m));
+      marketMapMarkers = [];
+      coords.forEach(c => {
+        const marker = L.marker([c.lat,c.lon]).addTo(marketMap).bindPopup(`<b>${c.label}</b>`);
+        marketMapMarkers.push(marker);
+      });
+      const bounds = coords.map(c=>[c.lat,c.lon]);
+      marketMap.fitBounds(bounds, { padding: [20,20] });
+      return true;
+    }
+
+    // Submit handler
+    document.getElementById('marketForm').addEventListener('submit', async function(e) {
+      if (e) e.preventDefault();
+      const prompt = (document.getElementById('marketPrompt').value || "").trim();
+      if (!prompt) {
+        document.getElementById('marketResult').innerHTML = "<div style='color:#6b7280'>Type commodity and place (e.g. 'wheat uttarakhand')</div>";
+        return;
+      }
+      const parsed = parseMarketPrompt(prompt);
+      const resultDiv = document.getElementById('marketResult');
+      resultDiv.innerHTML = `<div style="color:#334155">Searching for <b>${parsed.commodity}</b> ${parsed.state ? "in <b>" + parsed.state + "</b>" : parsed.market ? "near <b>" + parsed.market + "</b>" : ""} ...</div>`;
+      try {
+        const url = buildMarketApiUrl(parsed);
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        const records = data.records || data.data || data.result || [];
+        resultDiv.innerHTML = renderMarketResults(records);
+        const chartOk = buildPriceTrendChart(records);
+        const mapOk = showMarketMap(records);
+        if (!chartOk && !mapOk) document.getElementById('visuals').classList.add('hidden'); else document.getElementById('visuals').classList.remove('hidden');
+        document.getElementById('realtimeControls').classList.remove('hidden');
+        document.getElementById('trackStatus').innerText = 'stopped';
+        document.getElementById('startTrackBtn').classList.remove('hidden');
+        document.getElementById('stopTrackBtn').classList.add('hidden');
+        // auto-start tracking after results
+        setTimeout(()=> { if (records && records.length > 0) document.getElementById('startTrackBtn').click(); }, 400);
+      } catch (err) {
+        resultDiv.innerHTML = `<div style="color:#dc2626">Error fetching market data: ${String(err.message || err)}</div>`;
+        console.error(err);
+      }
+    });
+
+    // Realtime tracking
+    let trackingIntervalId = null;
+    let lastKnownPrice = null;
+    let currentTrackingParsed = null;
+
+    function _extractPriceFromRecord(r) {
+      const candidates = [r.min_price, r.min, r.price, r.mandibasic_min_price, r.mandi_min_price, r.mandi_price, r.max_price, r.max];
+      for (const c of candidates) {
+        const n = Number(c);
+        if (!Number.isNaN(n)) return n;
+      }
+      return null;
+    }
+    function _extractDateFromRecord(r) {
+      return r.date || r.record_date || r.Date || r.entry_date || r.recorded_on || null;
+    }
+    function computeLatestAverage(records) {
+      if (!records || records.length === 0) return null;
+      const dateMap = {};
+      for (const r of records) {
+        const dateStr = _extractDateFromRecord(r);
+        if (!dateStr) continue;
+        const d = dateStr.split('T')[0];
+        const v = _extractPriceFromRecord(r);
+        if (v === null) continue;
+        if (!dateMap[d]) dateMap[d] = { sum:0, count:0 };
+        dateMap[d].sum += v; dateMap[d].count += 1;
+      }
+      const dates = Object.keys(dateMap).sort();
+      if (!dates.length) return null;
+      const latest = dates[dates.length - 1];
+      return { date: latest, avg: Math.round((dateMap[latest].sum / dateMap[latest].count) * 100) / 100 };
+    }
+
+    function setTrackStatus(text, bg='#DCFCE7', color='#065F46') {
+      const el = document.getElementById('trackStatus');
+      el.innerText = text;
+      el.style.background = bg;
+      el.style.color = color;
+    }
+    function notifyUser(title, body) {
+      if (window.Notification && Notification.permission === "granted") {
+        new Notification(title, { body });
+      } else if (window.Notification && Notification.permission !== "denied") {
+        Notification.requestPermission().then(p => { if (p === "granted") new Notification(title, { body }); });
+      }
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sine"; o.frequency.value = 880; g.gain.value = 0.02;
+        o.connect(g); g.connect(ctx.destination); o.start();
+        setTimeout(()=>{ o.stop(); ctx.close(); }, 120);
+      } catch(e){}
+    }
+
+    async function _pollOnceFor(parsed) {
+      const u = new URL(buildMarketApiUrl(parsed));
+      u.searchParams.set('limit', '50');
+      const resp = await fetch(u.toString());
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+      const records = data.records || data.data || data.result || [];
+      const latest = computeLatestAverage(records);
+      const box = document.getElementById('currentPriceBox');
+      if (!latest) {
+        box.innerHTML = `<div style="color:#6b7280">No recent price/date found in API response.</div>`;
+        return;
+      }
+      const prev = lastKnownPrice;
+      lastKnownPrice = latest.avg;
+      box.innerHTML = `<div class="${prev === null ? '' : (lastKnownPrice > prev ? 'price-up' : (lastKnownPrice < prev ? 'price-down' : ''))}">
+        <strong>Latest avg price:</strong> ₹ ${lastKnownPrice} <span style="color:#6b7280;font-size:12px;margin-left:8px">(${latest.date})</span>
+        </div>`;
+      if (prev !== null && lastKnownPrice !== prev) {
+        box.classList.add('flash'); setTimeout(()=>box.classList.remove('flash'), 900);
+        const direction = lastKnownPrice > prev ? '▲ up' : '▼ down';
+        notifyUser(`Price ${direction}: ${parsed.commodity}`, `New avg: ₹${lastKnownPrice} (previous ₹${prev})`);
+      }
+    }
+
+    async function startTrackingFor(parsed) {
+      if (!parsed || !parsed.commodity) return;
+      currentTrackingParsed = parsed;
+      lastKnownPrice = null;
+      setTrackStatus('starting...', '#FEF3C7', '#92400E');
+      try { await _pollOnceFor(parsed); } catch(e){ console.error(e); }
+      if (trackingIntervalId) clearInterval(trackingIntervalId);
+      const intervalSec = Math.max(5, Number(document.getElementById('pollInterval').value) || 30);
+      trackingIntervalId = setInterval(()=>{ _pollOnceFor(parsed).catch(e=>console.error(e)); }, intervalSec * 1000);
+      setTrackStatus('tracking', '#DCFCE7', '#065F46');
+      document.getElementById('startTrackBtn').classList.add('hidden');
+      document.getElementById('stopTrackBtn').classList.remove('hidden');
+    }
+
+    function stopTracking() {
+      if (trackingIntervalId) { clearInterval(trackingIntervalId); trackingIntervalId = null; }
+      currentTrackingParsed = null;
+      lastKnownPrice = null;
+      setTrackStatus('stopped', '#FEE2E2', '#991B1B');
+      document.getElementById('startTrackBtn').classList.remove('hidden');
+      document.getElementById('stopTrackBtn').classList.add('hidden');
+    }
+
+    document.getElementById('startTrackBtn').addEventListener('click', async () => {
+      const prompt = (document.getElementById('marketPrompt').value || "").trim();
+      if (!prompt) { alert('Enter commodity + place first.'); return; }
+      const parsed = parseMarketPrompt(prompt);
+      if (window.Notification && Notification.permission !== 'granted') Notification.requestPermission();
+      await startTrackingFor(parsed);
+    });
+    document.getElementById('stopTrackBtn').addEventListener('click', () => stopTracking());
+    window.addEventListener('beforeunload', ()=>{ if (trackingIntervalId) clearInterval(trackingIntervalId); });
+
+  </script>
+</body>
+</html>
